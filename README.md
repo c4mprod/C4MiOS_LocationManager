@@ -82,7 +82,8 @@ The dictionary returned is like this :
   		statusCode = 200;
 	}
 
-StatusCode - Description
+StatusCode - Description  
+
 200 : No errors occurred; the address was successfully parsed and its geocode was returned.  
 300 : Unknow error  
 500 : A geocoding or directions request could not be successfully processed, yet the exact reason for the failure is unknown.  
@@ -93,7 +94,8 @@ StatusCode - Description
 620 : The given key has gone over the requests limit in the 24 hour period or has submitted too many requests in too short a period of time. If you're sending multiple requests in parallel or in a tight loop, use a timer or pause in your code to make sure you don't send the requests too quickly.  
 
 
-Accuracy - Description
+Accuracy - Description  
+
 0 : Unknown accuracy.  
 1 : Country level accuracy.  
 2 : Region (state, province, prefecture, etc.) level accuracy.  
