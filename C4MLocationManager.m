@@ -47,8 +47,6 @@
         [manager stopUpdatingLocation];
         lm.delegate = nil;
     }
-    
-    //[lm release];
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
@@ -66,9 +64,9 @@
 - (void)reverseGeocoder:(MKReverseGeocoder *)geocoder didFindPlacemark:(MKPlacemark *)placemark
 {
     NSMutableDictionary* dicPlaceMark = [[NSMutableDictionary alloc] initWithDictionary:[placemark addressDictionary]];
-    //[dicPlaceMark setObject:[placemark ZIP] forKey:@"ZIP"];
-    if([mDelegate respondsToSelector:@selector(receivePlaceMark:)])
-        [mDelegate receivePlaceMark:dicPlaceMark];
+   /* if([mDelegate respondsToSelector:@selector(receivePlaceMark:)])
+        [mDelegate receivePlaceMark:dicPlaceMark];*/
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"receivePlaceMark" object:dicPlaceMark];
     [dicPlaceMark release];
     [lm release];
     [MKgeoCoder autorelease];
@@ -124,8 +122,9 @@
             {
                 NSMutableDictionary* dicPlacemark = [[NSMutableDictionary alloc] initWithDictionary:placemark.addressDictionary];
                 [dicPlacemark setObject:placemark.location forKey:@"location"];
-                if([mDelegate respondsToSelector:@selector(receivePlaceMark:)])
-                    [mDelegate receivePlaceMark:dicPlacemark];
+               /* if([mDelegate respondsToSelector:@selector(receivePlaceMark:)])
+                    [mDelegate receivePlaceMark:dicPlacemark];*/
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"receivePlaceMark" object:dicPlacemark];
                 [dicPlacemark release];
             }    
         }];
