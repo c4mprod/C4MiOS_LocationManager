@@ -61,8 +61,9 @@
         [lm release];
         lm = nil;
     }    
-    if([mDelegate respondsToSelector:@selector(receiveError:)])
-        [mDelegate receiveError:error];
+  /*  if([mDelegate respondsToSelector:@selector(receiveError:)])
+        [mDelegate receiveError:error];*/
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"receiveError" object:error];
 }
 
 - (void)reverseGeocoder:(MKReverseGeocoder *)geocoder didFindPlacemark:(MKPlacemark *)placemark
@@ -165,35 +166,54 @@
 
 - (void) getCoordinateFromAddrString:(NSString*)_addr
 {
-    NSString *urlString = [NSString stringWithFormat:@"http://maps.google.com/maps/geo?q=%@&output=csv", 
-    [_addr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-    
-    NSString *locationString = [NSString stringWithContentsOfURL:[NSURL URLWithString:urlString] encoding:NSUTF8StringEncoding error:nil];
-    NSArray *listItems = [locationString componentsSeparatedByString:@","];
-    
-    NSMutableDictionary* coordinateDictionary = [[NSMutableDictionary alloc] init];
-    if([listItems count]>=4)
+    if([[[UIDevice currentDevice] systemVersion] intValue] < 5.0)
     {
-        [coordinateDictionary setObject:[listItems objectAtIndex:0] forKey:@"statusCode"];
-        [coordinateDictionary setObject:[listItems objectAtIndex:1] forKey:@"accuracy"];
-        [coordinateDictionary setObject:[listItems objectAtIndex:1] forKey:@"lat"];
-        [coordinateDictionary setObject:[listItems objectAtIndex:1] forKey:@"long"];
+        NSString *urlString = [NSString stringWithFormat:@"http://maps.google.com/maps/geo?q=%@&output=csv", 
+                               [_addr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+        
+        NSString *locationString = [NSString stringWithContentsOfURL:[NSURL URLWithString:urlString] encoding:NSUTF8StringEncoding error:nil];
+        NSArray *listItems = [locationString componentsSeparatedByString:@","];
+        
+        NSMutableDictionary* coordinateDictionary = [[NSMutableDictionary alloc] init];
+        if([listItems count]>=4)
+        {
+            [coordinateDictionary setObject:[listItems objectAtIndex:0] forKey:@"statusCode"];
+            [coordinateDictionary setObject:[listItems objectAtIndex:1] forKey:@"accuracy"];
+            [coordinateDictionary setObject:[listItems objectAtIndex:1] forKey:@"lat"];
+            [coordinateDictionary setObject:[listItems objectAtIndex:1] forKey:@"long"];
+        }
+        else
+        {
+            [coordinateDictionary setObject:@"300" forKey:@"statusCode"];
+        }
+       /* if([mDelegate respondsToSelector:@selector(receiveCoordinateFromLocation:)])
+            [mDelegate receiveCoordinateFromLocation:coordinateDictionary];*/
+        [coordinateDictionary setObject:mIdentifier forKey:@"identifierKey"];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"getCoordinationFromAddrString" object:coordinateDictionary];
+        [coordinateDictionary release];
     }
-    else
+    else 
     {
-        [coordinateDictionary setObject:@"300" forKey:@"statusCode"];
+        CLGeocoder *geocoder = [[[CLGeocoder alloc] init] autorelease];
+        [geocoder geocodeAddressString:_addr completionHandler:^(NSArray *placemarks, NSError *error)
+         {  
+             NSMutableDictionary* dic = [[NSMutableDictionary alloc] init];
+             [dic setObject:mIdentifier forKey:@"identifierKey"];
+             if(error)
+             {
+                 NSLog(@"error : %@",error.localizedDescription);
+                 [dic setObject:error forKey:@"error"];
+             }
+             else 
+             {
+                 NSLog(@"placemarks : %@",placemarks);
+                 [dic setObject:placemarks forKey:@"placemarks"];
+             }
+             [[NSNotificationCenter defaultCenter] postNotificationName:@"getCoordinationFromAddrString" object:dic];
+             [dic release];
+         }];
+        
     }
-    if([mDelegate respondsToSelector:@selector(receiveCoordinateFromLocation:)])
-        [mDelegate receiveCoordinateFromLocation:coordinateDictionary];
-    [coordinateDictionary release];
-    
-    /*
-     CLGeocoder *geocoder = [[[CLGeocoder alloc] init] autorelease];
-     [geocoder geocodeAddressDictionary:locationDictionary completionHandler:^(NSArray *placemarks, NSError *error)
-     
-     { }];
-     */
-    
 }
 
 
@@ -222,6 +242,31 @@ static C4MLocationManager *sharedInstance = nil;
     C4MLocationManager* loc = [C4MLocationManager sharedInstance];
     loc.mIdentifier = _identifier;
     [loc getUserLocation];
+}
+
++ (void) getCoordinationFromAddrString:(NSString*)_addr withIdentifier:(NSString*)_identifier
+{
+    C4MLocationManager* loc = [C4MLocationManager sharedInstance];
+    loc.mIdentifier = _identifier;
+    [loc getCoordinateFromAddrString:_addr];
+}
+
++ (void) getPlaceMarkFromCoordinate:(CLLocationCoordinate2D)_coordinate withIdentifier:(NSString*)_identifier
+{
+    C4MLocationManager* loc = [C4MLocationManager sharedInstance];
+    loc.mIdentifier = _identifier;
+    [loc getPlaceMarkFromCoordinate:_coordinate];
+}
+
++ (void) startLocationWithAccuracy:(CLLocationAccuracy)_accuracy
+{
+    C4MLocationManager* loc = [C4MLocationManager sharedInstance];
+    [loc startLocationWithAccuracy:_accuracy];
+}
++ (void) stopLocation
+{
+    C4MLocationManager* loc = [C4MLocationManager sharedInstance];
+    [loc stopLocation];
 }
 
 @end

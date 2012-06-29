@@ -66,12 +66,19 @@ didFailWithError:(NSError *)error;
 - (void) getPlaceMarkFromCurrentLocation;
 - (void) getPlaceMarkFromCoordinate:(CLLocationCoordinate2D)_coordinate;
 - (void) getCoordinateFromAddrString:(NSString*)_addr;
-
+- (void) startLocationWithAccuracy:(CLLocationAccuracy)_accuracy;
+- (void) stopLocation;
 // Use THIS method
 
 
-+ (void)getPlaceMarkFromCurrentLocationWithIdentifier:(NSString*)_identifier;
++ (void) getPlaceMarkFromCurrentLocationWithIdentifier:(NSString*)_identifier;
++ (void) getPlaceMarkFromCoordinate:(CLLocationCoordinate2D)_coordinate withIdentifier:(NSString*)_identifier;
 + (void) getUserLocationWithIdentifier:(NSString*)_identifier;
++ (void) getCoordinationFromAddrString:(NSString*)_addr withIdentifier:(NSString*)_identifier;
+
++ (void) startLocationWithAccuracy:(CLLocationAccuracy)_accuracy;
++ (void) stopLocation;
+
 /*
 Type of CLLocationAccuracy
  kCLLocationAccuracyBestForNavigation;
@@ -81,8 +88,7 @@ Type of CLLocationAccuracy
  kCLLocationAccuracyKilometer;
  kCLLocationAccuracyThreeKilometers;
 */
-- (void) startLocationWithAccuracy:(CLLocationAccuracy)_accuracy;
-- (void) stopLocation;
+
 
 @end
 
