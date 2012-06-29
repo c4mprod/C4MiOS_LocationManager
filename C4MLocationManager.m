@@ -26,19 +26,22 @@
 
 @synthesize locationManager;
 @synthesize mDelegate;
+@synthesize mIdentifier;
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
 {
     if(ifReverse == NO)
     {
-        if([mDelegate respondsToSelector:@selector(receiveUserLocation:)])
-            [mDelegate receiveUserLocation:newLocation];
+        /*if([mDelegate respondsToSelector:@selector(receiveUserLocation:)])
+            [mDelegate receiveUserLocation:newLocation];*/
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"receiveUserLocation" object:newLocation];
         
         if(ifStart==NO)
         {
             [manager stopUpdatingLocation];
             lm.delegate = nil;
             [lm release];
+            lm = nil;
         }
     }
     else
@@ -56,6 +59,7 @@
         [manager stopUpdatingLocation];
         lm.delegate = nil;
         [lm release];
+        lm = nil;
     }    
     if([mDelegate respondsToSelector:@selector(receiveError:)])
         [mDelegate receiveError:error];
@@ -64,11 +68,11 @@
 - (void)reverseGeocoder:(MKReverseGeocoder *)geocoder didFindPlacemark:(MKPlacemark *)placemark
 {
     NSMutableDictionary* dicPlaceMark = [[NSMutableDictionary alloc] initWithDictionary:[placemark addressDictionary]];
-   /* if([mDelegate respondsToSelector:@selector(receivePlaceMark:)])
-        [mDelegate receivePlaceMark:dicPlaceMark];*/
+    [dicPlaceMark setObject:mIdentifier forKey:@"identifierKey"];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"receivePlaceMark" object:dicPlaceMark];
     [dicPlaceMark release];
     [lm release];
+    lm = nil;
     [MKgeoCoder autorelease];
 }
 
@@ -78,6 +82,7 @@
     if([mDelegate respondsToSelector:@selector(receiveError:)])
         [mDelegate receiveError:error];
     [lm release];
+    lm = nil;
     [MKgeoCoder autorelease];
 }
 
@@ -93,12 +98,14 @@
     [lm startUpdatingLocation];
 }
 
--(void) getPlaceMarkFromCurrentLocation
+- (void) getPlaceMarkFromCurrentLocation
 {
+    
     ifReverse = YES;
     if(!lm)
         lm = [[CLLocationManager alloc] init];
     lm.delegate = self;
+    NSLog(@"lm retain count : %d",lm.retainCount);
     lm.desiredAccuracy = kCLLocationAccuracyBest;
     [lm startUpdatingLocation];
 }
@@ -107,7 +114,6 @@
 {
     if([[[UIDevice currentDevice] systemVersion] intValue] < 5.0)
     {
-     //   MKReverseGeocoder *geoCoder = [[MKReverseGeocoder alloc] initWithCoordinate:_coordinate];
         MKgeoCoder = [[MKReverseGeocoder alloc] initWithCoordinate:_coordinate];
         MKgeoCoder.delegate = self;
         [MKgeoCoder start];
@@ -122,8 +128,7 @@
             {
                 NSMutableDictionary* dicPlacemark = [[NSMutableDictionary alloc] initWithDictionary:placemark.addressDictionary];
                 [dicPlacemark setObject:placemark.location forKey:@"location"];
-               /* if([mDelegate respondsToSelector:@selector(receivePlaceMark:)])
-                    [mDelegate receivePlaceMark:dicPlacemark];*/
+                [dicPlacemark setObject:mIdentifier forKey:@"identifierKey"];
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"receivePlaceMark" object:dicPlacemark];
                 [dicPlacemark release];
             }    
@@ -131,7 +136,7 @@
         [geoCoder release];
         [loc release];
         [lm release];
-        
+        lm = nil;
     }
 }
 
@@ -153,6 +158,7 @@
         [lm stopUpdatingLocation];
         lm.delegate = nil;
         [lm release];
+        lm = nil;
     }
 }
 
@@ -160,7 +166,7 @@
 - (void) getCoordinateFromAddrString:(NSString*)_addr
 {
     NSString *urlString = [NSString stringWithFormat:@"http://maps.google.com/maps/geo?q=%@&output=csv", 
-[_addr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    [_addr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
     
     NSString *locationString = [NSString stringWithContentsOfURL:[NSURL URLWithString:urlString] encoding:NSUTF8StringEncoding error:nil];
     NSArray *listItems = [locationString componentsSeparatedByString:@","];
@@ -181,6 +187,41 @@
         [mDelegate receiveCoordinateFromLocation:coordinateDictionary];
     [coordinateDictionary release];
     
+    /*
+     CLGeocoder *geocoder = [[[CLGeocoder alloc] init] autorelease];
+     [geocoder geocodeAddressDictionary:locationDictionary completionHandler:^(NSArray *placemarks, NSError *error)
+     
+     { }];
+     */
+    
+}
+
+
+static C4MLocationManager *sharedInstance = nil;
+// Get the shared instance and create it if necessary.
++ (C4MLocationManager *)sharedInstance {
+    @synchronized(self) {
+        if (sharedInstance == nil) {
+            sharedInstance = [[C4MLocationManager alloc] init];
+        }
+    }
+    return sharedInstance;
+}
+
+#pragma mark -
+#pragma mark public method
++ (void)getPlaceMarkFromCurrentLocationWithIdentifier:(NSString*)_identifier
+{
+    C4MLocationManager* loc = [C4MLocationManager sharedInstance];
+    loc.mIdentifier = _identifier;
+    [loc getPlaceMarkFromCurrentLocation];
 }
  
++ (void) getUserLocationWithIdentifier:(NSString*)_identifier
+{
+    C4MLocationManager* loc = [C4MLocationManager sharedInstance];
+    loc.mIdentifier = _identifier;
+    [loc getUserLocation];
+}
+
 @end

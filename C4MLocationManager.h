@@ -41,9 +41,11 @@
 @end
 
 @interface C4MLocationManager : NSObject <CLLocationManagerDelegate, MKReverseGeocoderDelegate> {
-	CLLocationManager *locationManager;
-    CLLocationManager *lm;
-    MKReverseGeocoder *MKgeoCoder;
+	CLLocationManager   *locationManager;
+    CLLocationManager   *lm;
+    MKReverseGeocoder   *MKgeoCoder;
+    NSString            *mIdentifier;
+    C4MLocationManager  *instance;
     BOOL ifStart;
     BOOL ifReverse;
     NSObject<C4MLocationManagerDelegate>* mDelegate;
@@ -51,6 +53,7 @@
 
 @property (nonatomic, assign) NSObject<C4MLocationManagerDelegate>* mDelegate;
 @property (nonatomic, retain) CLLocationManager *locationManager;  
+@property (nonatomic, retain) NSString *mIdentifier;
 
 - (void)locationManager:(CLLocationManager *)manager
     didUpdateToLocation:(CLLocation *)newLocation
@@ -59,13 +62,16 @@
 - (void)locationManager:(CLLocationManager *)manager
 didFailWithError:(NSError *)error;
 
-
-// Use THIS method
 - (void) getUserLocation;
 - (void) getPlaceMarkFromCurrentLocation;
 - (void) getPlaceMarkFromCoordinate:(CLLocationCoordinate2D)_coordinate;
 - (void) getCoordinateFromAddrString:(NSString*)_addr;
 
+// Use THIS method
+
+
++ (void)getPlaceMarkFromCurrentLocationWithIdentifier:(NSString*)_identifier;
++ (void) getUserLocationWithIdentifier:(NSString*)_identifier;
 /*
 Type of CLLocationAccuracy
  kCLLocationAccuracyBestForNavigation;
