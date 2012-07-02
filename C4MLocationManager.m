@@ -153,7 +153,13 @@
     C4MLog(@"");
     NSDictionary* dict;
     if([mGetPlaceMarkIdentifier count] > 0 )
+    {
          dict = [mGetPlaceMarkIdentifier objectAtIndex:0];
+    }
+    else
+    {
+        dict = nil;
+    }
     if([[[UIDevice currentDevice] systemVersion] intValue] < 5.0)
     {
         MKgeoCoder = [[MKReverseGeocoder alloc] initWithCoordinate:_coordinate];
@@ -170,8 +176,13 @@
             {
                 NSMutableDictionary* dicPlacemark = [[NSMutableDictionary alloc] initWithDictionary:placemark.addressDictionary];
                 [dicPlacemark setObject:placemark.location forKey:@"location"];
-                if([mGetPlaceMarkIdentifier count] > 0 )
-                    [dicPlacemark setObject:[dict objectForKey:@"identifier"] forKey:@"identifierKey"];
+                if(dict != nil )
+                {
+                  
+                    NSLog(@"identifier : %@",[dict objectForKey:@"identifier"]);
+                  /*  [dicPlacemark setObject:[dict objectForKey:@"identifier"] forKey:@"identifierKey"];
+                   */
+                }
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"receivePlaceMark" object:dicPlacemark];
                 [dicPlacemark release];
             }    
