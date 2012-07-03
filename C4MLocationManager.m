@@ -33,8 +33,6 @@
     C4MLog(@"");
     if(ifReverse == NO)
     {
-        /*if([mDelegate respondsToSelector:@selector(receiveUserLocation:)])
-            [mDelegate receiveUserLocation:newLocation];*/
         [[NSNotificationCenter defaultCenter] postNotificationName:@"receiveUserLocation" object:newLocation];
         
         if(ifStart==NO)
@@ -63,8 +61,6 @@
         [lm release];
         lm = nil;
     }    
-  /*  if([mDelegate respondsToSelector:@selector(receiveError:)])
-        [mDelegate receiveError:error];*/
     [[NSNotificationCenter defaultCenter] postNotificationName:@"receiveError" object:error];
 }
 
@@ -178,10 +174,7 @@
                 [dicPlacemark setObject:placemark.location forKey:@"location"];
                 if(dict != nil )
                 {
-                  
-                    NSLog(@"identifier : %@",[dict objectForKey:@"identifier"]);
-                  /*  [dicPlacemark setObject:[dict objectForKey:@"identifier"] forKey:@"identifierKey"];
-                   */
+                    [dicPlacemark setObject:[dict objectForKey:@"identifier"] forKey:@"identifierKey"];
                 }
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"receivePlaceMark" object:dicPlacemark];
                 [dicPlacemark release];
